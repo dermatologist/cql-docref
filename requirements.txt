@@ -1,0 +1,6 @@
+gensim
+torch
+pandas
+transformers
+langchain[all]
+accelerate
