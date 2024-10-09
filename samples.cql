@@ -32,3 +32,12 @@ define "Test1":
         and D.finding="gait steady"
         and D.finding="Rhomberg negative"
         )
+
+define "Test2":
+    exists (
+        [DocumentReference] D
+        where D.procedure="Cardiac catheterization"
+        and D.diagnosis="Myocardial infarction"
+        and D.finding="ST elevations"
+        and D.pastMedicalHistory="Spinal stenosis"
+        )
