@@ -41,3 +41,13 @@ define "Test2":
         and D.finding="ST elevations"
         and D.pastMedicalHistory="Spinal stenosis"
         )
+
+
+define "Test3":
+    exists (
+        [DocumentReference] D
+        where D.complaint="Head ache"
+        and D.procedure="craniotomy"
+        and D.pastMedicalHistory="Hypertension"
+        and D.medication="Dexamethasone"
+        )
