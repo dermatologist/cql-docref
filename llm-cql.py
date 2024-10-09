@@ -6,14 +6,17 @@ from langchain_text_splitters import CharacterTextSplitter
 import pandas as pd
 import tqdm
 import torch
+import os
 
 model_id = "microsoft/Phi-3-mini-128k-instruct"
 tokenizer = AutoTokenizer.from_pretrained(model_id)
 model = AutoModelForCausalLM.from_pretrained(model_id, device_map="auto")
-pipe = pipeline("text-generation", model=model, tokenizer=tokenizer, max_new_tokens=16)
+pipe = pipeline("text-generation", model=model, tokenizer=tokenizer, max_new_tokens=128)
 llm = HuggingFacePipeline(pipeline=pipe)
 
 assertions = pd.read_csv('map/diagnosis.csv')
+os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
+torch.cuda.empty_cache()
 
 
 MAP_TEMPLATE = """
@@ -22,9 +25,9 @@ You should give a single line answer>> as in the example below.
 Example:
 
 CQL: exists (["DocumentReference": "Diabetes Mellitus"])
-answer>> Does the document ascertain Diabetes Mellitus?
+answer>> Does the document mention Diabetes Mellitus as a diagnosis?
 CQL: exists (["DocumentReference": "Herpes Zoster"])
-answer>> Does the document ascertain Herpes Zoster?
+answer>> Does the document mention Herpes Zoster as a diagnosis?
 
 Now convert the following CQL query to a natural language.
 CQL: exists (["DocumentReference": {diagnosis}])
@@ -34,25 +37,26 @@ answer>> """
 map_prompt = PromptTemplate.from_template(MAP_TEMPLATE)
 
 ASSERT_TEMPLATE = """
-You will be given a document and the concept. You have to answer with a yes or no.
-document: {document}
+You will be given a document and a question.\n
+You have to answer the question with a yes or no.
+document: {document} \n
 {question} yes or no: """
 
 assert_prompt = PromptTemplate.from_template(ASSERT_TEMPLATE)
 
 
-# data = []
-# for i, row in assertions.iterrows():
-#     chunk = {
-#         "diagnosis": row["diagnosis"]
-#     }
-#     chain = map_prompt | llm | StrOutputParser()
-#     response = chain.invoke(chunk)
-#     question = response.split(">>")[-1].strip()
-#     data.append([row['subject_id'], row['diagnosis'], question])
-#     print(question)
-# _df = pd.DataFrame(data, columns=['subject_id', 'diagnosis', 'question'])
-# _df.to_csv('map/diagnosis_questions.csv', index=False)
+data = []
+for i, row in assertions.iterrows():
+    chunk = {
+        "diagnosis": row["diagnosis"]
+    }
+    chain = map_prompt | llm | StrOutputParser()
+    response = chain.invoke(chunk)
+    question = response.split(">>")[-1].strip()
+    data.append([row['subject_id'], row['diagnosis'], question])
+    print(question)
+_df = pd.DataFrame(data, columns=['subject_id', 'diagnosis', 'question'])
+_df.to_csv('map/diagnosis_questions.csv', index=False)
 
 
 questions = pd.read_csv('map/diagnosis_questions.csv')
@@ -63,7 +67,7 @@ def chunk_notes(subject_id):
     for index, notes in main_data[main_data['subject_id'] == subject_id].iterrows():
         discharge_note = notes['text']
         text_splitter = CharacterTextSplitter.from_tiktoken_encoder(
-            chunk_size=800, chunk_overlap=5
+            chunk_size=1024, chunk_overlap=5
         )
         split_docs = text_splitter.split_text(discharge_note)
         for doc in split_docs:
@@ -79,7 +83,7 @@ def assert_diagnosis(docs, question):
         }
         chain = assert_prompt | llm | StrOutputParser()
         answer = chain.invoke(chunk).split(" ")[-1].lower().strip()
-        if "yes" in answer:
+        if "yes" in answer.lower():
             return True
     return False
 
@@ -87,6 +91,8 @@ for i, row in questions.iterrows():
     subject_id = row['subject_id']
     question = row['question']
     docs = chunk_notes(subject_id)
-    print(f"Subject ID: {subject_id}, Question: {question}")
-    print(f"Answer: {assert_diagnosis(docs, question)}")
+    if len(docs) > 20:
+        continue
+    answer = assert_diagnosis(docs, question)
+    print(f"Subject ID: {subject_id}, Question: {question}, Answer: {answer}")
 
