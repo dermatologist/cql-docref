@@ -5,6 +5,7 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_text_splitters import CharacterTextSplitter
 import pandas as pd
 import tqdm
+import torch
 
 model_id = "microsoft/Phi-3-mini-128k-instruct"
 tokenizer = AutoTokenizer.from_pretrained(model_id)
@@ -40,18 +41,18 @@ document: {document}
 assert_prompt = PromptTemplate.from_template(ASSERT_TEMPLATE)
 
 
-data = []
-for i, row in assertions.iterrows():
-    chunk = {
-        "diagnosis": row["diagnosis"]
-    }
-    chain = map_prompt | llm | StrOutputParser()
-    response = chain.invoke(chunk)
-    question = response.split(">>")[-1].strip()
-    data.append([row['subject_id'], row['diagnosis'], question])
-    print(question)
-_df = pd.DataFrame(data, columns=['subject_id', 'diagnosis', 'question'])
-_df.to_csv('map/diagnosis_questions.csv', index=False)
+# data = []
+# for i, row in assertions.iterrows():
+#     chunk = {
+#         "diagnosis": row["diagnosis"]
+#     }
+#     chain = map_prompt | llm | StrOutputParser()
+#     response = chain.invoke(chunk)
+#     question = response.split(">>")[-1].strip()
+#     data.append([row['subject_id'], row['diagnosis'], question])
+#     print(question)
+# _df = pd.DataFrame(data, columns=['subject_id', 'diagnosis', 'question'])
+# _df.to_csv('map/diagnosis_questions.csv', index=False)
 
 
 questions = pd.read_csv('map/diagnosis_questions.csv')
@@ -70,6 +71,7 @@ def chunk_notes(subject_id):
     return docs
 
 def assert_diagnosis(docs, question):
+    torch.cuda.empty_cache()
     for doc in tqdm.tqdm(docs):
         chunk = {
             "document": doc,
