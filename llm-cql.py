@@ -53,17 +53,19 @@ map_prompt = PromptTemplate.from_template(MAP_TEMPLATE)
 
 ASSERT_TEMPLATE = """
 You will be given a document and a question.\n
-Extract ONLY the relevant lines from the document related to the statement: {question} \n
+Summarize the document chunk commenting on: {question} \n
+Do not include absent or negative mentions.\n
 document: {document} \n
-Relevant lines:: """
+Summary:: """
 
 assert_prompt = PromptTemplate.from_template(ASSERT_TEMPLATE)
 
 FINAL_TEMPLATE = """
 You will be given a document and a question.\n
+Do not include the document in the answer.\n
 You have to answer the question with a yes or no.
 document: {document} \n
-Does the document mention {question} yes or no: """
+Does the document mention {question} Say yes or no:: """
 
 final_prompt = PromptTemplate.from_template(FINAL_TEMPLATE)
 
@@ -76,7 +78,7 @@ for i, row in assertions.iterrows():
     response = chain.invoke(chunk)
     question = response.split(">>")[-1].strip()
     data.append([row['subject_id'], row['cql'], question])
-    print(question)
+    # print(question)
 _df = pd.DataFrame(data, columns=['subject_id', 'cql', 'question'])
 _df.to_csv('map/diagnosis_questions.csv', index=False)
 
@@ -94,13 +96,14 @@ def chunk_notes(data):
     return docs
 
 def final_answer(facts, question):
-    print(f"facts: {facts}")
+    # print(f"facts: {facts}")
     chunk = {
         "document": facts,
         "question": question
     }
     chain = final_prompt | llm | StrOutputParser()
-    answer = chain.invoke(chunk)
+    answer = chain.invoke(chunk).split("::")[-1].strip()
+    print(f"Answer: {answer}")
     if "yes" in answer.lower():
         return True
     return False
