@@ -51,3 +51,12 @@ define "Test3":
         and D.pastMedicalHistory="Hypertension"
         and D.medication="Dexamethasone"
         )
+
+define "Test4":
+    exists (
+        [DocumentReference] D
+        where D.procedure="Laparoscopy with biopsy"
+        where D.pastMedicalHistory="Prostate cancer"
+        where D.medication="Docusate Sodium"
+        where D.diagnosis="Urethral stricture"
+        )
