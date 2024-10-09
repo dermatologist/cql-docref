@@ -24,13 +24,28 @@ You are an assistant that can convert a CQL query to a natural language.
 You should give a single line answer>> as in the example below.
 Example:
 
-CQL: exists (["DocumentReference": "Diabetes Mellitus"])
-answer>> Does the document mention Diabetes Mellitus as a diagnosis?
-CQL: exists (["DocumentReference": "Herpes Zoster"])
-answer>> Does the document mention Herpes Zoster as a diagnosis?
+CQL:     exists (
+        [DocumentReference] D
+        where D.allergies="Penicillin"
+        and D.complaint="Headache"
+        and D.complaint="Weakness" or D.complaint="Numbness"
+        and D.findings="Intact sensation to light touch"
+        )
+
+answer>> Does the document mention Penicillin allergy, Headache, Weakness, Numbness, and Intact sensation to light touch as findings?
+
+CQL:    exists (
+            [DocumentReference] D
+            where D.diagnosis="Diverticulitis"
+            and D.complaint="Fever"
+            and D.procedure="Colon resection"
+            and not D.finding="Fluid collection"
+        )
+
+answer>> Does the document mention Diverticulitis diagnosis, Fever complaint, Colon resection procedure, and no Fluid collection finding?
 
 Now convert the following CQL query to a natural language.
-CQL: exists (["DocumentReference": {diagnosis}])
+CQL: {cql}
 
 answer>> """
 
@@ -48,14 +63,14 @@ assert_prompt = PromptTemplate.from_template(ASSERT_TEMPLATE)
 data = []
 for i, row in assertions.iterrows():
     chunk = {
-        "diagnosis": row["diagnosis"]
+        "cql": row["cql"]
     }
     chain = map_prompt | llm | StrOutputParser()
     response = chain.invoke(chunk)
     question = response.split(">>")[-1].strip()
-    data.append([row['subject_id'], row['diagnosis'], question])
+    data.append([row['subject_id'], row['cql'], question])
     print(question)
-_df = pd.DataFrame(data, columns=['subject_id', 'diagnosis', 'question'])
+_df = pd.DataFrame(data, columns=['subject_id', 'cql', 'question'])
 _df.to_csv('map/diagnosis_questions.csv', index=False)
 
 
