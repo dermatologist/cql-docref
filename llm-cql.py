@@ -123,6 +123,7 @@ def collect_facts(docs, question):
 
 questions = pd.read_csv('map/diagnosis_questions.csv')
 main_data = pd.read_csv('map/discharge_sample.csv')
+previous_answer = "None"
 for i, row in questions.iterrows():
     subject_id = row['subject_id']
     question = row['question']
@@ -132,5 +133,5 @@ for i, row in questions.iterrows():
         continue
     facts = collect_facts(docs, question)
     answer = final_answer(facts, question)
-    print(f"Subject ID: {subject_id}, Question: {question}, Answer: {answer}")
-
+    print(f"Subject ID: {subject_id}, Question: {question}, Answer: {answer}, Previous Answer: {previous_answer}")
+    previous_answer = answer
