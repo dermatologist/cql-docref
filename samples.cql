@@ -115,3 +115,12 @@ define "Test10":
         and D.familyHistory="hypothyroidism"
         and D.medication="Clonazepam"
         )
+
+define "Test11":
+    exists (
+        [DocumentReference] D
+        where D.complaint="Epistaxis"
+        and D.finding="hypertension"
+        and D.pastMedicalHistory="Hypercholesterolemia"
+        and D.medication="Clopidogrel"
+        )
