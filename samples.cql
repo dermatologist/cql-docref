@@ -56,7 +56,62 @@ define "Test4":
     exists (
         [DocumentReference] D
         where D.procedure="Laparoscopy with biopsy"
-        where D.pastMedicalHistory="Prostate cancer"
-        where D.medication="Docusate Sodium"
-        where D.diagnosis="Urethral stricture"
+        and D.pastMedicalHistory="Prostate cancer"
+        and D.medication="Docusate Sodium"
+        and D.diagnosis="Urethral stricture"
+        )
+
+define "Test5":
+    exists (
+        [DocumentReference] D
+        where D.diagnosis="rheumatoid arthritis"
+        and D.finding="thickened pericardium"
+        and D.pastMedicalHistory="Dyslipidemia"
+        and D.medication="Colchicine"
+        )
+
+define "Test6":
+    exists (
+        [DocumentReference] D
+        where D.complaint="fever"
+        and D.finding="obesity"
+        and D.medication="Ativan"
+        and D.pastMedicalHistory="Thyroid nodule"
+        and D.imagingObservation="Mild pulmonary edema"
+        )
+
+define "Test7":
+    exists (
+        [DocumentReference] D
+        where D.complaint="slurred speech"
+        and D.pastMedicalHistory="Atrial fibrillation"
+        and D.medication="atorvastatin"
+        and not D.imagingObservation="evidence of stroke"
+        )
+
+define: "Test8":
+    exists (
+        [DocumentReference] D
+        where D.allergyIntolerance="Sulfonamide Antibiotics"
+        and D.complaint="urinary retention"
+        and D.procedure="posterior colporrhaphy"
+        and D.pastMedicalHistory="Asthma"
+        )
+
+define "Test9":
+    exists (
+        [DocumentReference] D
+        where D.allergyIntolerance="Penicillins"
+        and D.complaint="fall"
+        and D.medication="warfarin"
+        and D.diagnosis="C2 fracture"
+        )
+
+define "Test10":
+    exists (
+        [DocumentReference] D
+        where D.complaint="suicidal"
+        and D.pastMedicalHistory="Depression"
+        and D.familyHistory="hypothyroidism"
+        and D.medication="Clonazepam"
         )

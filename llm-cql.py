@@ -7,6 +7,9 @@ import pandas as pd
 import tqdm
 import torch
 import os
+import time
+
+start_time = time.time()
 
 model_id = "microsoft/Phi-3-mini-128k-instruct"
 tokenizer = AutoTokenizer.from_pretrained(model_id)
@@ -61,11 +64,11 @@ Summary:: """
 assert_prompt = PromptTemplate.from_template(ASSERT_TEMPLATE)
 
 FINAL_TEMPLATE = """
-You will be given a document and a question.\n
+You will be given a document and a question to answer with ONLY a yes or no.\n
 Do not include the document in the answer.\n
-You have to answer the question with a yes or no.
+Say yes if the document mentions all aspects of the question, else say no.\n
 document: {document} \n
-Does the document mention {question} Say yes or no:: """
+question: Does the document mention {question} Say yes or no:: """
 
 final_prompt = PromptTemplate.from_template(FINAL_TEMPLATE)
 
@@ -123,7 +126,11 @@ def collect_facts(docs, question):
 
 questions = pd.read_csv('map/diagnosis_questions.csv')
 main_data = pd.read_csv('map/discharge_sample.csv')
-previous_answer = "None"
+previous_answer = False
+TP = 0
+FP = 0
+TN = 0
+FN = 0
 for i, row in questions.iterrows():
     subject_id = row['subject_id']
     question = row['question']
@@ -134,4 +141,15 @@ for i, row in questions.iterrows():
     facts = collect_facts(docs, question)
     answer = final_answer(facts, question)
     print(f"Subject ID: {subject_id}, Question: {question}, Answer: {answer}, Previous Answer: {previous_answer}")
-    previous_answer = answer
+    if not previous_answer and answer:
+        TP += 1
+    if previous_answer and not answer:
+        TN += 1
+    if not previous_answer and not answer:
+        FN += 1
+    if previous_answer and answer:
+        FP += 1
+    print(f"TP: {TP}, FP: {FP}, TN: {TN}, FN: {FN}")
+    previous_answer = not previous_answer
+print(f"FINAL: TP: {TP}, FP: {FP}, TN: {TN}, FN: {FN}")
+print(f"Time: {time.time() - start_time}")
