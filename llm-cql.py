@@ -152,4 +152,5 @@ for i, row in questions.iterrows():
     print(f"TP: {TP}, FP: {FP}, TN: {TN}, FN: {FN}")
     previous_answer = not previous_answer
 print(f"FINAL: TP: {TP}, FP: {FP}, TN: {TN}, FN: {FN}")
+print(f"Accuracy: {(TP + TN) / (TP + TN + FP + FN)}")
 print(f"Time: {time.time() - start_time}")
