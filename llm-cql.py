@@ -11,6 +11,7 @@ import time
 
 start_time = time.time()
 
+# Load the model
 model_id = "microsoft/Phi-3-mini-128k-instruct"
 tokenizer = AutoTokenizer.from_pretrained(model_id)
 model = AutoModelForCausalLM.from_pretrained(model_id, device_map="auto")
@@ -21,7 +22,7 @@ assertions = pd.read_csv('~/data/diagnosis.csv')
 os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
 torch.cuda.empty_cache()
 
-
+# Define the prompt templates
 MAP_TEMPLATE = """
 You are an assistant that can convert a CQL query to a natural language.
 You should give a single line answer>> as in the example below.
@@ -72,6 +73,7 @@ question: Does the document mention {question} Say yes or no:: """
 
 final_prompt = PromptTemplate.from_template(FINAL_TEMPLATE)
 
+# Generate the natural language questions from the CQL queries
 data = []
 for i, row in assertions.iterrows():
     chunk = {
@@ -81,9 +83,10 @@ for i, row in assertions.iterrows():
     response = chain.invoke(chunk)
     question = response.split(">>")[-1].strip()
     data.append([row['subject_id'], row['cql'], question])
-    # print(question)
+
 _df = pd.DataFrame(data, columns=['subject_id', 'cql', 'question'])
 _df.to_csv('~/data/diagnosis_questions.csv', index=False)
+
 
 
 def chunk_notes(data):
@@ -98,8 +101,21 @@ def chunk_notes(data):
             docs.append(doc)
     return docs
 
+# Map
+def collect_facts(docs, question):
+    facts = ""
+    for doc in tqdm.tqdm(docs):
+        chunk = {
+            "document": doc,
+            "question": question
+        }
+        chain = assert_prompt | llm | StrOutputParser()
+        answer = chain.invoke(chunk).split("::")[-1].strip()
+        facts += answer + " "
+    return facts
+
+# Reduce
 def final_answer(facts, question):
-    # print(f"facts: {facts}")
     chunk = {
         "document": facts,
         "question": question
@@ -110,19 +126,6 @@ def final_answer(facts, question):
     if "yes" in answer.lower():
         return True
     return False
-
-def collect_facts(docs, question):
-    facts = ""
-    for doc in tqdm.tqdm(docs):
-        chunk = {
-            "document": doc,
-            "question": question
-        }
-        chain = assert_prompt | llm | StrOutputParser()
-        answer = chain.invoke(chunk).split("::")[-1].strip()
-        # print(f"Answer: {answer}")
-        facts += answer + " "
-    return facts
 
 questions = pd.read_csv('~/data/diagnosis_questions.csv')
 main_data = pd.read_csv('~/data/discharge_sample.csv')
@@ -141,6 +144,7 @@ for i, row in questions.iterrows():
     facts = collect_facts(docs, question)
     answer = final_answer(facts, question)
     print(f"Subject ID: {subject_id}, Question: {question}, Answer: {answer}, Previous Answer: {previous_answer}")
+    # True and false are in sequence
     if not previous_answer and answer:
         TP += 1
     if previous_answer and not answer:
