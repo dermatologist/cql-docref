@@ -17,7 +17,7 @@ model = AutoModelForCausalLM.from_pretrained(model_id, device_map="auto")
 pipe = pipeline("text-generation", model=model, tokenizer=tokenizer, max_new_tokens=128)
 llm = HuggingFacePipeline(pipeline=pipe)
 
-assertions = pd.read_csv('map/diagnosis.csv')
+assertions = pd.read_csv('~/data/diagnosis.csv')
 os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
 torch.cuda.empty_cache()
 
@@ -83,7 +83,7 @@ for i, row in assertions.iterrows():
     data.append([row['subject_id'], row['cql'], question])
     # print(question)
 _df = pd.DataFrame(data, columns=['subject_id', 'cql', 'question'])
-_df.to_csv('map/diagnosis_questions.csv', index=False)
+_df.to_csv('~/data/diagnosis_questions.csv', index=False)
 
 
 def chunk_notes(data):
@@ -124,8 +124,8 @@ def collect_facts(docs, question):
         facts += answer + " "
     return facts
 
-questions = pd.read_csv('map/diagnosis_questions.csv')
-main_data = pd.read_csv('map/discharge_sample.csv')
+questions = pd.read_csv('~/data/diagnosis_questions.csv')
+main_data = pd.read_csv('~/data/discharge_sample.csv')
 previous_answer = False
 TP = 0
 FP = 0
