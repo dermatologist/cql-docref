@@ -1,8 +1,8 @@
-# LLM-CQL.py
+# LLM-in-the-loop Execution of Clinical Query Language (CQL) on Unstructured Data
 
-LLM-CQL.py is a proof of concept for LLM-in-the-loop execution of CQL on unstructured data, currently in review.
+LLM-CQL.py is a proof of concept for LLM-in-the-loop execution of CQL on unstructured data, currently in review. *More details will be added after the paper review.*
 
-* A fork of the CQL Execution framework that provides a hook for integrating LLM-in-the-loop execution of CQL on unstructured data is [here](https://github.com/dermatologist/cql-execution).
+* A fork of the **CQL Execution framework** that provides a hook for integrating LLM-in-the-loop execution of CQL on unstructured data is [here](https://github.com/dermatologist/cql-execution).
 
 ## Installation
 
@@ -14,20 +14,20 @@ pip install -r requirements.txt
 
 ## Data Preparation
 
-## Sample record
+## Sample record (discharge_sample.csv)
 note_id | subject_id | hadm_id | note_type | note_seq | charttime | storetime | text |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | 1 | XXXXXX5 | 123456 | DS | 1 | 2021-01-01 00:00:00 | 2021-01-01 00:00:00 | Sample Text
 
-### diagnosis.csv
+### CQL and actual status (diagnosis.csv)
 
 | subject_id | cql | actual status |
 | --- | --- | --- |
 | XXXXXX5 | exists ([DocumentReference] D where D.procedure="Cardiac catheterization" and D.diagnosis="Myocardial infarction" and D.finding="ST elevations" and D.pastMedicalHistory="Spinal stenosis") | TRUE
 | XXXXXX5 | exists ([DocumentReference] D where D.complaint="Facial weakness" and D.pastMedicalHistory="GERD" and D.familyHistory="Stroke" and D.finding="gait steady" and D.finding="Rhomberg negative") | FALSE
 
-### Natural Language Query from CQL
-
+### Natural Language Query from CQL (diagnosis_questions.csv)
+* *This file is created by the script in STEP (a).*
 
 | subject_id | cql | Natural Language Query |
 | --- | --- | --- |
