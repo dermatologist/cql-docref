@@ -1,8 +1,6 @@
 # LLM-in-the-loop Execution of Clinical Query Language (CQL) on Unstructured Data
 
-LLM-CQL.py is a proof of concept for LLM-in-the-loop execution of CQL on unstructured data, currently in review. *More details will be added after the paper review.*
-
-* A fork of the **CQL Execution framework** that provides a hook for integrating LLM-in-the-loop execution of CQL on unstructured data is [here](https://github.com/dermatologist/cql-execution).
+LLM-CQL.py is a proof of concept for LLM-in-the-loop execution of CQL on unstructured data. We propose using LLMs to execute CQL statements referring FHIR *DocumentReferences* to first, convert CQL to natural language, then map the referenced *DocumentReference* to facts and finally reduce it to a binary label. A fork of the **CQL Execution framework** that provides a hook for integrating LLM-in-the-loop execution of CQL on unstructured data is [here](https://github.com/dermatologist/cql-execution). An end-to-end demo with a CQL execution engine will be released soon!
 
 ## Installation
 
